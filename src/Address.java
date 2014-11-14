@@ -55,6 +55,11 @@ public class Address{
 		this.newObject = true;
 	}
 	
+	/**
+	 * Returns the id of the object. 
+	 * @return int The id of the object. 
+	 * @throws SQLNotSavedException Thrown if save() has not been called. 
+	 */
 	public int id() throws SQLNotSavedException{
 		if(this.addrId == null){
 			throw new SQLNotSavedException("Address not saved in database");
@@ -63,6 +68,10 @@ public class Address{
 		}
 	}
 	
+	/**
+	 * Saves the current object. Determines whether to use an insert or update. 
+	 * @return int the status code of the save. 0 is successful, >= 1 error. 
+	 */
 	public int save(){
 		Connection c = BetaUniversity.getConnection();
 		PreparedStatement stmt = null;
@@ -97,6 +106,11 @@ public class Address{
 		return 1;	
 	}
 	
+	/**
+	 * Opens an instance of this row in an object. Creates an instance of the object and returns it.
+	 * @param addrId The id of the row. 
+	 * @return Address The address, or null if it failed or had errors. 
+	 */
 	public static Address open(int addrId){
 		Connection c = BetaUniversity.getConnection();
 		PreparedStatement stmt = null;
@@ -140,6 +154,9 @@ public class Address{
 		
 	}
 	
+	/**
+	 * Returns a string format of this object. 
+	 */
 	public String toString(){
 		return this.street + "\n" + this.city + ", " + this.state + " " + this.zipcode;
 	}

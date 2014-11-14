@@ -3,16 +3,31 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+/**
+ * Class representing the category table in the database. 
+ * @author Wheeler
+ *
+ */
 public class Category{
 	public final int typeId;
 	public final String type;
 	
+	/**
+	 * Private constructor for creating a object from an existing row. 
+	 * @param typeId	The id of the type.
+	 * @param type		The name of the type.
+	 */
 	private Category(int typeId, String type){
 		this.typeId = typeId;
 		this.type = type;
 	}
 	
-	
+	/**
+	 * Opens an an exiting row of an object by taking in its id and creating an object 
+	 * with the data from the row. 
+	 * @param typeId	The id of the category. 
+	 * @return Category	The category in object form. 
+	 */
 	public static Category open(int typeId){
 		Connection c = BetaUniversity.getConnection();
 		PreparedStatement stmt = null;
