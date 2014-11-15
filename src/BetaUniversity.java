@@ -7,6 +7,8 @@
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.sql.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Scanner;
 
 import org.postgresql.Driver;
@@ -37,14 +39,14 @@ public class BetaUniversity {
 		// Only run if running this program in eclipse.
 		if(EclipseTools.isDevelopmentEnvironment()){
 			EclipseTools.fixConsole();
-			System.setIn(new FileInputStream("input.1"));
+			//System.setIn(new FileInputStream("input.1"));
 		}
 		
 		sc = new Scanner(System.in);
 		
 		connect(host, user, password);
 		
-		System.out.println("Enter command (enter \"help\" for list of commands):");
+		
 		getInput();
 		
 		sc.close();
@@ -101,8 +103,79 @@ public class BetaUniversity {
 	 * The main driving method of the program. Gets input from the user and calls
 	 * various methods that act as abstractions of the various core components 
 	 * of this program. 
+	 * @throws  
 	 */
 	private static void getInput(){
+		
+		String options = "1.  New donation";
+		
+		System.out.println("What would you like to do?");
+		System.out.println("Enter \"help\" for a list of commands");
+		System.out.println("Enter \"quit\" to exit");
+		
+		boolean quit = false;
+		while(!quit){
+			
+			System.out.print("> ");
+			String command = sc.nextLine().trim();
+			
+			if(command.equalsIgnoreCase("help")){
+				System.out.println("List of commands:");
+				System.out.println(options);
+			}else if(command.equalsIgnoreCase("quit")){
+				System.out.println("Exiting...");
+				
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					System.exit(1);
+				}
+				quit = true;
+				continue;
+			}else if(command.equals("1")){
+				Donation donation = promptAndCreateDonation();
+				Donor donor = promptAndCreateDonor();
+				
+				
+				donation.save();
+				donor.save();
+				
+				Donated donated = null;
+				
+				try {
+					donated = promptAndCreateDonated(donation.id(), donor.id());
+				} catch (SQLNotSavedException e) {
+					// Shouldn't occur. 
+				}
+				
+				donated.save();
+				
+				System.out.println("Donation entered sucessfully!");
+				System.out.println("Did the donor's company match the donation?");
+				if(promptYesOrNo()){
+					Company company = promptAndCreateCompany();
+					
+					company.save();
+					
+					MatchingCorp matchingCorp = null;
+					
+					try {
+						matchingCorp = promptAndCreateMatchingCorp(donation.id(), donor.id());
+					} catch (SQLNotSavedException e) {
+						// Shouldn't occur. 
+					}
+					
+					matchingCorp.save();
+					
+					System.out.println("Matching information entered sucessfully!");
+				}
+				
+			}else if(command.equals("2")){
+				getCategories();
+			}
+			
+		}
+		/*
 				
 		System.out.print("> ");
 		
@@ -111,14 +184,14 @@ public class BetaUniversity {
 		
 		if(splitCommand[0].equalsIgnoreCase("new")){
 			if(splitCommand[1].equalsIgnoreCase("donation")){
-				//TODO create new donation
-				/*
-				System.out.println("Enter donor information:");
-				System.out.print("Name: > ");
-				System.out.print("YOG: >");
-				System.out.print("");*/
-				
-				System.out.println("> ");
+				Donation donation = null;
+				boolean valid = false;
+				while(!valid){
+					donation = promptAndCreateDonation();
+					if(donation.save() == 0){
+						valid = true;
+					}
+				}
 				
 			}else if(splitCommand[1].equalsIgnoreCase("donor")){
 				Donor donor = null;
@@ -164,6 +237,8 @@ public class BetaUniversity {
 		
 		sc.close();
 	}
+	
+	
 	
 	/**
 	 * Prompts the user for information about creating a new address row/object.
@@ -279,7 +354,7 @@ public class BetaUniversity {
 			String[] categories = getCategories();
 			
 			System.out.println("Categories of donors:");
-			System.out.println(" ID | Name");
+			System.out.println("ID | Name");
 			for(String categoryStr : categories){
 				String[] category = categoryStr.split("~");
 				
@@ -386,6 +461,137 @@ public class BetaUniversity {
 		return company;
 	}
 	
+	/**
+	 * Prompts the user for information about creating a new address row/object.
+	 * This method will continue to prompt the user until valid data is entered,
+	 * e.g., valid numeric zipcode, valid state abbreviation. 
+	 * 
+	 * @return Address	an address object if the data was successfully validated. 
+	 */
+	private static Donation promptAndCreateDonation(){
+		boolean valid = false;
+		Donation donation = null;
+		
+		outer:
+		while(!valid){
+			System.out.println("Enter the following information:");
+			
+			boolean validAmountPledged = false;
+			int amountPledged = 0;
+			while(!validAmountPledged){
+				System.out.print("Amount pledged: > ");
+				String amountPledgedStr = sc.nextLine().trim().replaceAll("\\D", "");
+				try{
+					amountPledged = Integer.parseInt(amountPledgedStr);
+				}catch(NumberFormatException e){
+					System.err.println("Invalid amount: " + amountPledgedStr);
+					continue;
+				}
+				validAmountPledged = true;
+			}
+			
+			boolean validAmountDonated = false;
+			int amountDonated = 0;
+			while(!validAmountDonated){
+				System.out.print("Amount donated: > ");
+				String amountDonatedStr = sc.nextLine().trim().replaceAll("\\D", "");
+				try{
+					amountDonated = Integer.parseInt(amountDonatedStr);
+				}catch(NumberFormatException e){
+					System.err.println("Invalid amount: " + amountDonatedStr);
+					continue;
+				}
+				validAmountDonated = true;
+			}
+			
+			
+			System.out.print("Payment method: > ");
+			String paymentMethod = sc.nextLine().trim();
+			
+			
+			boolean validDate = false;
+			Date dateLastPayment = null;
+			while(!validDate){
+				System.out.print("Most recent payment date (MM/DD/YYYY): > ");
+				SimpleDateFormat sdf = new SimpleDateFormat("mm/dd/yyyy");
+				sdf.setLenient(false);
+				
+				
+				String dateStr = sc.nextLine().trim();
+				java.util.Date utilDate = null;
+				
+				try{
+					utilDate = sdf.parse(dateStr);
+				}catch(ParseException e){
+					System.err.println("Invalid date: " + sdf.format(utilDate));
+					continue;
+				}
+				dateLastPayment = new Date(utilDate.getTime());
+				validDate = true;
+			}
+			
+			
+			donation = new Donation(amountPledged, amountDonated, paymentMethod, dateLastPayment);
+			
+			System.out.println("You have entered the following donation:");
+			System.out.println(donation);
+			
+			System.out.print("Is this correct? [Y/n] > ");
+			
+			boolean validResponse = false;
+			
+			while(!validResponse){
+				String response = sc.nextLine().trim();
+				if(response.equalsIgnoreCase("no") || response.equalsIgnoreCase("n")){
+					continue outer;
+				}else if(response.equalsIgnoreCase("yes") || response.equalsIgnoreCase("y")){
+					break;
+				}else{
+					System.out.println("What? > ");
+				}
+			}
+			
+			System.out.flush();
+						
+			valid = true;
+			
+		}
+		return donation;
+	}
+	
+	private static Donated promptAndCreateDonated(int donationId, int donorId){
+		
+		Donated donated = null;
+		
+		boolean validDate = false;
+		Date donationDate = null;
+		while(!validDate){
+			System.out.print("Enter donation date (MM/DD/YYYY): > ");
+			SimpleDateFormat sdf = new SimpleDateFormat("mm/dd/yyyy");
+			sdf.setLenient(false);
+			
+			
+			String dateStr = sc.nextLine().trim();
+			java.util.Date utilDate = null;
+			
+			try{
+				utilDate = sdf.parse(dateStr);
+			}catch(ParseException e){
+				System.err.println("Invalid date: " + sdf.format(utilDate));
+				continue;
+			}
+			donationDate = new Date(utilDate.getTime());
+			validDate = true;
+		}
+		
+		donated = new Donated(donationId, donorId, donationDate);
+		return donated;
+	}
+	
+private static MatchingCorp promptAndCreateMatchingCorp(int donationId, int donorId){
+		return new MatchingCorp(donationId, donorId);
+	}
+	
 	private static String[] getCategories(){
 		PreparedStatement stmt = null;
 		String[] categories = null;
@@ -433,6 +639,23 @@ public class BetaUniversity {
 		}
 		
 		return categories;
+	}
+	
+	public static boolean promptYesOrNo(){
+		boolean yes = false;
+		boolean validResponse = false;
+		while(!validResponse){
+			String response = sc.nextLine().trim();
+			if(response.equalsIgnoreCase("no") || response.equalsIgnoreCase("n")){
+				yes = false;
+			}else if(response.equalsIgnoreCase("yes") || response.equalsIgnoreCase("y")){
+				yes = true;;
+			}else{
+				System.out.println("What? > ");
+			}
+		}
+		
+		return yes;
 	}
 	
 	

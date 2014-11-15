@@ -191,7 +191,7 @@ public class Donation{
 	public String toString(){
 		String string = "";
 		
-		string += "ID:\t\t" + this.donationId + "\n";
+		string += "ID:\t\t\t" + this.donationId + "\n";
 		string += "Pledged:\t\t" + this.amountPledged + "\n";
 		string += "Donated:\t\t" + this.amountDonated + "\n";
 		string += "Payment Method:\t\t" + this.paymentMethod + "\n";

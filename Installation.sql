@@ -1,4 +1,4 @@
-drop table if exists donate;
+drop table if exists donated;
 drop table if exists matchingCorp;
 drop table if exists company;
 drop table if exists donor;
@@ -61,7 +61,7 @@ create table matchingCorp(
 	corpId			int not null references company(corpId)
 );
 
-create table donate(
+create table donated(
 	donationId		int primary key references donation(donationId),
 	donorId			int not null references donor(donorId),
 	donationDate	date
