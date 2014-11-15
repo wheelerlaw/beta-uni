@@ -99,7 +99,7 @@ public class Address{
 			
 			// need to get the ID that was created by the database. 
 			if(newObject){
-				sql = "select max(addrId) from address where city=?, street=?, state=?, zipcode=?;";
+				sql = "select max(addrId) from address where city=? and street=? and state=? and zipcode=?;";
 				stmt = c.prepareStatement(sql);
 
 				stmt.setString(1, city);

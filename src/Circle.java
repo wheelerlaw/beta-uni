@@ -56,4 +56,8 @@ public class Circle{
 		
 	}
 	
+	public String toString(){
+		return this.circleName;
+	}
+	
 }

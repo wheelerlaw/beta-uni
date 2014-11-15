@@ -91,6 +91,10 @@ public class Donor{
 		Connection c = BetaUniversity.getConnection();
 		PreparedStatement stmt = null;
 		
+		if(address.save() == 1){
+			return 1;
+		}
+		
 		try {
 			if(c.isClosed()){
 				return 1;
@@ -119,7 +123,7 @@ public class Donor{
 			
 			// need to get the ID that was created by the database. 
 			if(newObject){
-				sql = "select max(donorId) from donor where name=?, yog=?, spouseName=?, address=?, category=?, circle=?;";
+				sql = "select max(donorId) from donor where name=? and yog=? and spouseName=? and address=? and category=? and circle=?;";
 				stmt = c.prepareStatement(sql);
 
 				stmt.setString(1, name);
@@ -204,6 +208,15 @@ public class Donor{
 	 */
 	public String toString(){
 		String string = "";
+		
+		string += "ID:\t\t" + donorId + "\n";
+		string += "Name:\t\t" + name + "\n";
+		string += "Spouse:\t\t" + spouseName + "\n";
+		string += "YOG:\t\t" + YOG + "\n";
+		string += "Category:\t" + category + "\n";
+		string += "Circle:\t\t" + circle + "\n";
+		string += "Address:\n";
+		string += address;
 		return string;
 	}
 	

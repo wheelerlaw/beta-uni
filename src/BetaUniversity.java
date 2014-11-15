@@ -4,6 +4,8 @@
  * 
  */
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.sql.*;
 import java.util.Scanner;
 
@@ -25,15 +27,18 @@ public class BetaUniversity {
 	 * The main operating method of the program. Connects to a server, gets input, 
 	 * and quits. 
 	 * @param args
+	 * @throws FileNotFoundException 
 	 */
-	public static void main(String[] args){
+	public static void main(String[] args) throws FileNotFoundException{
 		String host = "jdbc:postgresql://reddwarf.cs.rit.edu:5432/p32001b";
 		String user = "p32001b";
 		String password = "never eat sour waffles";
 		
 		// Only run if running this program in eclipse.
-		if(EclipseTools.isDevelopmentEnvironment())
+		if(EclipseTools.isDevelopmentEnvironment()){
 			EclipseTools.fixConsole();
+			System.setIn(new FileInputStream("input.1"));
+		}
 		
 		sc = new Scanner(System.in);
 		
@@ -117,7 +122,13 @@ public class BetaUniversity {
 				
 			}else if(splitCommand[1].equalsIgnoreCase("donor")){
 				Donor donor = null;
-				donor = promptAndCreateDonor();
+				boolean valid = false;
+				while(!valid){
+					donor = promptAndCreateDonor();
+					if(donor.save() == 0){
+						valid = true;
+					}
+				}
 				
 			}else if(splitCommand[1].equalsIgnoreCase("address")){
 				Address address = null;
@@ -233,6 +244,7 @@ public class BetaUniversity {
 		boolean valid = false;
 		Donor donor = null;
 		
+		outer:
 		while(!valid){
 			System.out.println("Enter the following information:");
 			System.out.print("Name: > ");
@@ -289,9 +301,31 @@ public class BetaUniversity {
 				
 			}
 			
+			Circle circle = Circle.open(1);
 			Address address = promptAndCreateAddress();
 			
-			donor = new Donor(name, nameOfSpouse, yog, category, address, null);
+			donor = new Donor(name, nameOfSpouse, yog, category, address, circle);
+			
+			System.out.println("You have entered the following donor:");
+			System.out.println(donor);
+			
+			System.out.print("Is this correct? [Y/n] > ");
+			
+			boolean validResponse = false;
+			
+			while(!validResponse){
+				String response = sc.nextLine().trim();
+				if(response.equalsIgnoreCase("no") || response.equalsIgnoreCase("n")){
+					continue outer;
+				}else if(response.equalsIgnoreCase("yes") || response.equalsIgnoreCase("y")){
+					break;
+				}else{
+					System.out.println("What? > ");
+				}
+			}
+			
+			System.out.flush();
+						
 			valid = true;
 			
 		}
