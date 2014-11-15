@@ -143,7 +143,14 @@ public class BetaUniversity {
 				
 				System.out.println(address);
 			}else if(splitCommand[1].equalsIgnoreCase("company")){
-				//TODO create new company
+				Company company = null;
+				boolean valid = false;
+				while(!valid){
+					company = promptAndCreateCompany();
+					if(company.save() == 0){
+						valid = true;
+					}
+				}
 			}
 		}
 		/*
@@ -330,6 +337,53 @@ public class BetaUniversity {
 			
 		}
 		return donor;
+	}
+	
+	/**
+	 * Prompts the user for information about creating a new address row/object.
+	 * This method will continue to prompt the user until valid data is entered,
+	 * e.g., valid numeric zipcode, valid state abbreviation. 
+	 * 
+	 * @return Address	an address object if the data was successfully validated. 
+	 */
+	private static Company promptAndCreateCompany(){
+		boolean valid = false;
+		Company company = null;
+		
+		outer:
+		while(!valid){
+			System.out.println("Enter the following information:");
+			System.out.print("Name: > ");
+			String name = sc.nextLine().trim();
+			
+			Address address = promptAndCreateAddress();
+			
+			company = new Company(name, address);
+			
+			System.out.println("You have entered the following company:");
+			System.out.println(company);
+			
+			System.out.print("Is this correct? [Y/n] > ");
+			
+			boolean validResponse = false;
+			
+			while(!validResponse){
+				String response = sc.nextLine().trim();
+				if(response.equalsIgnoreCase("no") || response.equalsIgnoreCase("n")){
+					continue outer;
+				}else if(response.equalsIgnoreCase("yes") || response.equalsIgnoreCase("y")){
+					break;
+				}else{
+					System.out.println("What? > ");
+				}
+			}
+			
+			System.out.flush();
+						
+			valid = true;
+			
+		}
+		return company;
 	}
 	
 	private static String[] getCategories(){

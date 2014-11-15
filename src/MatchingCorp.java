@@ -4,15 +4,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * This class represents a single row in the company table. The attributes
+ * This class represents a single row in the donation table. The attributes
  * represent the columns in the table. 
  * @author Wheeler
  *
  */
-public class Company{
-	private Integer corpId;
-	public String name;
-	public Address address;
+public class MatchingCorp{
+	public final int donationId;
+	public final int corpId;
 	
 	//This just determines whether to do an insert or an update. Not an actual column in the table.
 	private boolean newObject;
@@ -31,29 +30,9 @@ public class Company{
 	 * @param address		The id of the address of the donor.
 	 * @param circle		The id of the donor circle the donor belongs to. 
 	 */
-	private Company(int corpId, String name, Address address){
+	public MatchingCorp(int donationId, int corpId){
+		this.donationId = donationId;
 		this.corpId = corpId;
-		this.name = name;
-		this.address = address;
-		
-		this.newObject = false;
-	}
-	
-	/**
-	 * Public constructor for creating a new row in a table. This is public because this
-	 * is how the user will create a new row in the table. 
-	 * 
-	 * @param name			The name of the donor
-	 * @param spouseName	The name of the spouse of the donor
-	 * @param YOG			The year of graduation of the donor
-	 * @param category		The id of the type of donor (student, alumni, etc.)
-	 * @param address		The id of the address of the donor.
-	 * @param circle		The id of the donor circle the donor belongs to. 
-	 */
-	public Company(String name, Address address){
-		this.corpId = null;
-		this.name = name;
-		this.address = address;
 		
 		this.newObject = true;
 	}
@@ -64,10 +43,10 @@ public class Company{
 	 * @throws SQLNotSavedException Thrown if the object was not saved. 
 	 */
 	public int id() throws SQLNotSavedException{
-		if(this.corpId == null){
-			throw new SQLNotSavedException("Donor not saved in database");
+		if(this.newObject){
+			throw new SQLNotSavedException("Donation not saved in database");
 		}else{
-			return this.corpId;
+			return this.donationId;
 		}
 	}
 	
@@ -79,45 +58,23 @@ public class Company{
 		Connection c = BetaUniversity.getConnection();
 		PreparedStatement stmt = null;
 		
-		if(address.save() == 1){
+		if(!this.newObject)
 			return 1;
-		}
 		
 		try {
 			if(c.isClosed()){
 				return 1;
 			}
 			
-			String sql = "";
-			if(newObject){
-				sql = "insert into company(name, address) values(?, ?);";
-			}else{
-				sql = "update donor set name=?, address=? where corpId=?;";
-			}
+			
+			String sql = "insert into donate(donationId, corpId) values(?, ?);";
+			
 			stmt = c.prepareStatement(sql);
 			
-			stmt.setString(1, name);
-			stmt.setInt(2, address.id());
-			
-			if(!newObject){
-				stmt.setInt(3, corpId);
-			}
+			stmt.setInt(1, this.donationId);
+			stmt.setInt(2, this.corpId);
 			
 			stmt.executeUpdate();
-			
-			// need to get the ID that was created by the database. 
-			if(newObject){
-				sql = "select max(corpId) from company where name=? and address=?;";
-				stmt = c.prepareStatement(sql);
-
-				stmt.setString(1, name);
-				stmt.setInt(2, address.id());
-				
-				ResultSet rs = stmt.executeQuery();
-				if(rs.next()){
-					this.corpId = rs.getInt(1);
-				}
-			}
 			
 			return 0;
 		} catch (SQLException e) {
@@ -128,49 +85,46 @@ public class Company{
 	}
 	
 	/**
-	 * Opens an an existing row in the databse and creates an object around it. 
+	 * Opens an an existing row in the database and creates an object around it. 
 	 * @param donorId	The id of the donor.
 	 * @return Donor	The donor object, or null if there was an error. 
 	 */
-	public static Company open(int corpId){
+	public static MatchingCorp open(int donationId){
 		Connection c = BetaUniversity.getConnection();
 		PreparedStatement stmt = null;
 		
-		Company company = null;
+		MatchingCorp matchingCorp = null;
 		
 		try {
 			if(c.isClosed()){
 				return null;
 			}
 			
-			String sql = "select name, address from company where corpId = ?;";
+			String sql = "select corpId from matchingcorp where donationId = ?;";
 			stmt = c.prepareStatement(sql);
 			
-			stmt.setInt(1, corpId);
+			stmt.setInt(1, donationId);
 			
 			ResultSet rs = stmt.executeQuery();
 			
-			String name = null;
-			int addressId = 0;
+			Integer corpId = null;
 			if(rs.next()){
-				name = rs.getString(1);
-				addressId = rs.getInt(2);
+				corpId = rs.getInt(1);
 			}
-			if(name == null)
+			if(corpId == null)
 				return null;
 			
 			rs.close();
 			stmt.close();
 			
-			Address address = Address.open(addressId);
-			company = new Company(corpId, name, address);
-			company.newObject = false;
+			matchingCorp = new MatchingCorp(donationId, corpId);
+			matchingCorp.newObject = false;
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		
-		return company;
+		return matchingCorp;
 		
 	}
 	
@@ -181,10 +135,9 @@ public class Company{
 	public String toString(){
 		String string = "";
 		
-		string += "ID:\t\t" + this.corpId + "\n";
-		string += "Name:\t\t" + this.name + "\n";
-		string += "Address:\n";
-		string += address;
+		string += "Donation ID:\t\t" + this.donationId + "\n";
+		string += "Donor ID:\t\t" + this.corpId;
+		
 		return string;
 	}
 	

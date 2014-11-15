@@ -167,6 +167,8 @@ public class Donation{
 				paymentMethod = rs.getString(3);
 				dateLastPayment = rs.getDate(4);
 			}
+			if(dateLastPayment == null)
+				return null;
 			
 			rs.close();
 			stmt.close();

@@ -58,12 +58,12 @@ create table donation(
 
 create table matchingCorp(
 	donationId		int primary key references donation(donationId),
-	corpId			int references company(corpId)
+	corpId			int not null references company(corpId)
 );
 
 create table donate(
 	donationId		int primary key references donation(donationId),
-	donorId			int references donor(donorId),
+	donorId			int not null references donor(donorId),
 	donationDate	date
 );
 
