@@ -116,7 +116,8 @@ public class BetaUniversity {
 				System.out.println("> ");
 				
 			}else if(splitCommand[1].equalsIgnoreCase("donor")){
-				//TODO create new donor
+				Donor donor = null;
+				donor = promptAndCreateDonor();
 				
 			}else if(splitCommand[1].equalsIgnoreCase("address")){
 				Address address = null;
@@ -159,7 +160,7 @@ public class BetaUniversity {
 		
 		outer:
 		while(!valid){
-			System.out.println("Enter the following information:");
+			System.out.println("Enter address information:");
 			System.out.print("Street: > ");
 			String street = sc.nextLine().trim();
 			
@@ -172,7 +173,7 @@ public class BetaUniversity {
 			System.out.print("Zipcode: > ");
 			String zipcode = sc.nextLine().trim();
 			
-			System.out.println("You have entered the followig information:");
+			System.out.println("You have entered this address:");
 			System.out.println(street);
 			System.out.println(city+", "+stateStr+" "+zipcode);
 			System.out.print("Is this correct? [Y/n] > ");
@@ -219,6 +220,131 @@ public class BetaUniversity {
 			
 		}
 		return address;
+	}
+	
+	/**
+	 * Prompts the user for information about creating a new address row/object.
+	 * This method will continue to prompt the user until valid data is entered,
+	 * e.g., valid numeric zipcode, valid state abbreviation. 
+	 * 
+	 * @return Address	an address object if the data was successfully validated. 
+	 */
+	private static Donor promptAndCreateDonor(){
+		boolean valid = false;
+		Donor donor = null;
+		
+		while(!valid){
+			System.out.println("Enter the following information:");
+			System.out.print("Name: > ");
+			String name = sc.nextLine().trim();
+			
+			System.out.print("Spouse name (opt.): > ");
+			String nameOfSpouse = sc.nextLine().trim();
+			
+			
+			boolean validYOG = false;
+			int yog = 0;
+			while(!validYOG){
+				System.out.print("Year of grad.: > ");
+				String yogStr = sc.nextLine().trim();
+				try{
+					yog = Integer.parseInt(yogStr);
+				}catch(NumberFormatException e){
+					System.err.println("Invalid YOG: " + yogStr);
+					continue;
+				}
+				validYOG = true;
+			}
+			
+			
+			String[] categories = getCategories();
+			
+			System.out.println("Categories of donors:");
+			System.out.println(" ID | Name");
+			for(String categoryStr : categories){
+				String[] category = categoryStr.split("~");
+				
+				System.out.println(category[0] + "   " + category[1]);
+			}
+			
+			boolean validCategory = false;
+			Category category = null;
+			while(!validCategory){
+				System.out.print("Entery category ID: > ");
+				String categoryString = sc.nextLine().trim();
+				int categoryId;
+				try{
+					categoryId = Integer.parseInt(categoryString);
+				}catch(NumberFormatException e){
+					System.err.println("Invalid category ID: "+categoryString);
+					continue;
+				}
+				
+				category = Category.open(categoryId);
+				if(category == null){
+					System.err.println("Invalid category ID: "+categoryString);
+					continue;
+				}
+				validCategory = true;
+				
+			}
+			
+			Address address = promptAndCreateAddress();
+			
+			donor = new Donor(name, nameOfSpouse, yog, category, address, null);
+			valid = true;
+			
+		}
+		return donor;
+	}
+	
+	private static String[] getCategories(){
+		PreparedStatement stmt = null;
+		String[] categories = null;
+		
+		try{
+			if(c.isClosed())
+				return null;
+			/*
+			String sql = "select count(type) from category;";
+			stmt = c.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			stmt.close();
+			
+			int rowCount = 0;
+			if(rs.next()){
+				rowCount = rs.getInt(1);
+			}
+			rs.close();*/
+			
+			
+			String sql = "select typeid, type from category;";
+			stmt = c.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			ResultSet rs = stmt.executeQuery();
+			
+			int rowCount = 0;
+			while(rs.next())
+				rowCount++;
+			
+			rs.beforeFirst();
+			
+			categories = new String[rowCount];
+			
+			int i = 0;
+			while(rs.next()){
+				//Category category = Category.open(rs.getInt(1));
+				categories[i] = rs.getString(1)+"~"+rs.getString(2);
+				i++;
+			}
+			
+			stmt.close();
+			rs.close();
+			
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+		
+		return categories;
 	}
 	
 	

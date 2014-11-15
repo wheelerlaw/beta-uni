@@ -39,6 +39,9 @@ public class Circle{
 				circleName = rs.getString(1);
 				donationTier = rs.getInt(2);
 			}
+			if(circleName == null){
+				return null;
+			}
 			
 			rs.close();
 			stmt.close();

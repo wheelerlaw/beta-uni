@@ -198,4 +198,13 @@ public class Donor{
 		
 	}
 	
+	/**
+	 * Returns a string representation of the donor. 
+	 * @return String the string representation of the donor. 
+	 */
+	public String toString(){
+		String string = "";
+		return string;
+	}
+	
 }

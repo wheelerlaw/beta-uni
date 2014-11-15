@@ -50,6 +50,9 @@ public class Category{
 			if(rs.next()){
 				type = rs.getString(1);
 			}
+			if(type == null){
+				return null;
+			}
 			
 			rs.close();
 			stmt.close();
