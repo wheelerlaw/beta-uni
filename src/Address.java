@@ -97,6 +97,22 @@ public class Address{
 			
 			stmt.executeUpdate();
 			
+			// need to get the ID that was created by the database. 
+			if(newObject){
+				sql = "select max(addrId) from address where city=?, street=?, state=?, zipcode=?;";
+				stmt = c.prepareStatement(sql);
+
+				stmt.setString(1, city);
+				stmt.setString(2, street);
+				stmt.setString(3, state.stateAbbr);
+				stmt.setInt(4, zipcode);
+				
+				ResultSet rs = stmt.executeQuery();
+				if(rs.next()){
+					this.addrId = rs.getInt(1);
+				}
+			}
+			
 			return 0;
 		} catch (SQLException e) {
 			System.err.println(e.getMessage());
