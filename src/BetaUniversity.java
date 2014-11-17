@@ -152,6 +152,8 @@ public class BetaUniversity {
 				
 				System.out.println("Donation entered sucessfully!");
 				System.out.println("Did the donor's company match the donation?");
+				boolean validResponse = false;
+				
 				if(promptYesOrNo()){
 					Company company = promptAndCreateCompany();
 					
@@ -642,14 +644,17 @@ private static MatchingCorp promptAndCreateMatchingCorp(int donationId, int dono
 	}
 	
 	public static boolean promptYesOrNo(){
+		System.out.println("> ");
 		boolean yes = false;
 		boolean validResponse = false;
 		while(!validResponse){
 			String response = sc.nextLine().trim();
 			if(response.equalsIgnoreCase("no") || response.equalsIgnoreCase("n")){
 				yes = false;
+				validResponse = true;
 			}else if(response.equalsIgnoreCase("yes") || response.equalsIgnoreCase("y")){
-				yes = true;;
+				yes = true;
+				validResponse = true;
 			}else{
 				System.out.println("What? > ");
 			}
